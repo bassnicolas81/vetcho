@@ -1,0 +1,119 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Vetcho</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        label, select, input { display: block; margin-top: 10px; }
+        .timer { font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Quiz Vetcho</h2>
+        <p class="timer" id="timer">Temps restant : 10:00</p>
+        <form id="quizForm">
+            <label>Nom et Prénom : <input type="text" id="nomPrenom" required></label>
+            <label>Date de naissance : <input type="date" id="dob" required></label>
+            <label>Profession : <input type="text" id="profession" required></label>
+            <label>1. Nombre de dents d’un adulte : <input type="number" id="q1"></label>
+            <label>2. Capitale du Burkina Faso : <input type="text" id="q2"></label>
+            <label>3. Capitale régionale du Centre-nord : 
+                <select id="q3">
+                    <option value="">--Choisir--</option>
+                    <option value="Léo">Léo</option>
+                    <option value="Réo">Réo</option>
+                    <option value="Sapouy">Sapouy</option>
+                    <option value="Koudougou">Koudougou</option>
+                </select>
+            </label>
+            <label>4. Capitale de la Russie : Moscou
+                <input type="checkbox" id="q4">
+            </label>
+            <label>5. Capitale du Sénégal : <input type="text" id="q5"></label>
+            <label>6. Couleur de la pomme : 
+                <select id="q6">
+                    <option value="">--Choisir--</option>
+                    <option value="Jaune">Jaune</option>
+                    <option value="Rouge">Rouge</option>
+                    <option value="Vert">Vert</option>
+                    <option value="Bleu">Bleu</option>
+                    <option value="Noir">Noir</option>
+                </select>
+            </label>
+            <label>7. Nom du concepteur de l’application : <input type="text" id="q7"></label>
+            <label>8. Date de l’indépendance du Burkina Faso : <input type="number" id="q8"></label>
+            <label>9. Capitale de l’Italie : 
+                <select id="q9">
+                    <option value="">--Choisir--</option>
+                    <option value="Berlin">Berlin</option>
+                    <option value="Rome">Rome</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Rabat">Rabat</option>
+                </select>
+            </label>
+            <label>10. Chiffre après 16 : <input type="number" id="q10"></label>
+            <button type="submit">Valider</button>
+        </form>
+    </div>
+
+    <script>
+        let timeLeft = 600;
+        const timerElement = document.getElementById("timer");
+
+        function updateTimer() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerElement.textContent = `Temps restant : ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                alert("Temps écoulé ! Le quiz est soumis automatiquement.");
+                document.getElementById("quizForm").dispatchEvent(new Event("submit"));
+            }
+        }
+        updateTimer();
+
+        document.getElementById("quizForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let confirmation = confirm("Voulez-vous soumettre vos réponses ?");
+            if (!confirmation) return;
+            
+            const correctAnswers = {
+                q1: "32", q2: "Ouagadougou", q3: "Koudougou", q4: true,
+                q5: "Dakar", q6: "Vert", q7: "Hervé", q8: "1960", q9: "Rome", q10: "17"
+            };
+            let score = 0;
+            
+            Object.keys(correctAnswers).forEach(id => {
+                let answer = document.getElementById(id);
+                let userValue = answer.type === "checkbox" ? answer.checked : answer.value.trim().toLowerCase();
+                let correctValue = typeof correctAnswers[id] === "boolean" ? correctAnswers[id] : correctAnswers[id].toLowerCase();
+                if (userValue == correctValue) score++;
+            });
+            
+            let nomPrenom = document.getElementById("nomPrenom").value;
+            let dob = document.getElementById("dob").value;
+            let profession = document.getElementById("profession").value;
+            
+            let data = [["Nom et Prénom", "Date de naissance", "Profession", "Score"], [nomPrenom, dob, profession, score]];
+            let ws = XLSX.utils.aoa_to_sheet(data);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Résultats");
+            XLSX.writeFile(wb, "C:/Users/Public/Desktop/Quiz_vetcho.xlsx");
+            
+            alert(`Votre score est de ${score}/10`);
+            let newEntry = confirm("Voulez-vous faire un nouvel enregistrement ?");
+            if (newEntry) document.getElementById("quizForm").reset();
+            else window.close();
+        });
+    </script>
+</body>
+</html>
